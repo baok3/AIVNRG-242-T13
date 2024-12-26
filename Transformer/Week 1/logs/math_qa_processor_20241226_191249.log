@@ -1,0 +1,28 @@
+2024-12-26 19:12:49,471 - ERROR - Error in main process: Data directory not found: Transformer\Week1\Data
+2024-12-26 19:13:01,683 - ERROR - Error in main process: Data directory not found: Week1\Data
+2024-12-26 19:13:13,827 - INFO - Successfully loaded main_train.csv
+2024-12-26 19:13:13,852 - INFO - Successfully loaded main_test.csv
+2024-12-26 19:13:13,869 - INFO - Successfully loaded socratic_test.csv
+2024-12-26 19:13:13,880 - ERROR - Error in main process: Object of type int64 is not JSON serializable
+2024-12-26 19:13:54,107 - INFO - Successfully loaded main_train.csv
+2024-12-26 19:13:54,121 - INFO - Successfully loaded main_test.csv
+2024-12-26 19:13:54,133 - INFO - Successfully loaded socratic_test.csv
+2024-12-26 19:13:54,140 - ERROR - Error in main process: Object of type int64 is not JSON serializable
+2024-12-26 19:14:17,747 - INFO - Successfully loaded main_train.csv
+2024-12-26 19:14:17,754 - INFO - Successfully loaded main_test.csv
+2024-12-26 19:14:17,768 - INFO - Successfully loaded socratic_test.csv
+2024-12-26 19:14:17,785 - ERROR - Error in main process: Object of type int64 is not JSON serializable
+2024-12-26 19:17:42,313 - INFO - Successfully loaded main_train.csv
+2024-12-26 19:17:42,327 - INFO - Successfully loaded main_test.csv
+2024-12-26 19:17:42,347 - INFO - Successfully loaded socratic_test.csv
+2024-12-26 19:17:42,487 - INFO - Data processing completed successfully
+2024-12-26 19:19:38,734 - INFO - Successfully loaded main_train.csv
+2024-12-26 19:19:38,751 - INFO - Successfully loaded main_test.csv
+2024-12-26 19:19:38,761 - INFO - Successfully loaded socratic_test.csv
+2024-12-26 19:19:38,817 - INFO - Successfully loaded socratic_train.csv
+2024-12-26 19:19:39,053 - INFO - Data processing completed successfully
+2024-12-26 19:25:08,334 - INFO - Successfully loaded training file: main_train.csv
+2024-12-26 19:25:08,400 - INFO - Successfully loaded training file: socratic_train.csv
+2024-12-26 19:25:08,419 - INFO - Successfully loaded test file: main_test.csv
+2024-12-26 19:25:08,422 - INFO - Successfully loaded test file: socratic_test.csv
+2024-12-26 19:25:08,669 - INFO - Data processing completed successfully

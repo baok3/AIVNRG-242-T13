@@ -1,0 +1,19 @@
+{
+  "model_name": "bert-base-uncased",
+  "batch_size": 32,
+  "learning_rate": 2e-05,
+  "num_epochs": 3,
+  "max_sequence_length": 128,
+  "data_statistics": {
+    "train_samples": 14946,
+    "test_samples": 2638,
+    "total_samples": 17584,
+    "max_question_length": 985,
+    "avg_question_length": 235.31210191082803,
+    "unique_questions": 8792
+  },
+  "files": {
+    "train": "processed_data\\train.csv",
+    "test": "processed_data\\test.csv"
+  }
+}
