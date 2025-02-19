@@ -1,42 +1,84 @@
 import torch
-from torch.utils.data import DataLoader, random_split
-from data_augmentation import train_transform, val_transform
-from dataset import RareDiseaseDataset
-from model import PretrainedModel
-from transformers import AutoModel
+import torch.nn as nn
+import torch.optim as optim
+from transformers import ViTForImageClassification, ViTFeatureExtractor, Trainer, TrainingArguments
+import torchvision.transforms as transforms
+import datasets
+import os
+from datasets import load_dataset
 
-# Load dataset
-dataset = RareDiseaseDataset(root_dir="rare_disease", transform=train_transform, advanced=True)
 
-# Chia train/validation
-train_size = int(0.8 * len(dataset))
-val_size = len(dataset) - train_size
-train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
+def evaluate_model(model, dataset, feature_extractor):
+    model.eval()
+    correct = 0
+    total = 0
+    for example in dataset:
+        inputs = feature_extractor(example["image"], return_tensors="pt")["pixel_values"]
+        with torch.no_grad():
+            outputs = model(inputs)
+            predicted = torch.argmax(outputs.logits, dim=1).item()
+        if predicted == example["label"]:
+            correct += 1
+        total += 1
+    accuracy = 100 * correct / total
+    print(f"Evaluation Accuracy: {accuracy:.2f}%")
+    return accuracy
 
-# Thay đổi transform cho validation
-val_dataset.dataset.transform = val_transform
 
-# DataLoader
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
+def inference(model, image_path, feature_extractor):
+    from PIL import Image
+    image = Image.open(image_path).convert("RGB")
+    inputs = feature_extractor(image, return_tensors="pt")["pixel_values"]
+    model.eval()
+    with torch.no_grad():
+        outputs = model(inputs)
+        predicted = torch.argmax(outputs.logits, dim=1).item()
+    print(f"Predicted class: {predicted}")
+    return predicted
 
-# Khởi tạo mô hình pretrained
-num_classes = len(dataset.classes)
-model = PretrainedModel("facebook/deit-base-distilled-patch16-224", num_classes)
 
-# Cấu hình loss function và optimizer
-criterion = torch.nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+def main():
+    dataset = load_dataset("imagefolder", data_dir="data/processed/splits")
+    feature_extractor = ViTFeatureExtractor.from_pretrained("google/vit-base-patch16-224")
 
-def train_one_epoch():
-    model.train()
-    for images, labels in train_loader:
-        optimizer.zero_grad()
-        outputs = model(images)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
-    print(f"Loss: {loss.item():.4f}")
+    def transform(example):
+        example["pixel_values"] = feature_extractor(example["image"], return_tensors="pt")["pixel_values"][0]
+        return example
 
-# Chạy training 1 epoch
-train_one_epoch()
+    dataset = dataset.with_transform(transform)
+
+    model = ViTForImageClassification.from_pretrained(
+        "google/vit-base-patch16-224",
+        num_labels=len(dataset["train"].features["label"].names)
+    )
+
+    training_args = TrainingArguments(
+        output_dir="models/outputs",
+        evaluation_strategy="epoch",
+        save_strategy="epoch",
+        per_device_train_batch_size=8,
+        per_device_eval_batch_size=8,
+        num_train_epochs=5,
+        save_total_limit=2,
+        logging_dir="logs",
+        logging_steps=10,
+    )
+
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=dataset["train"],
+        eval_dataset=dataset["test"],
+        tokenizer=feature_extractor,
+    )
+
+    trainer.train()
+    model.save_pretrained("models/outputs/vit_finetuned")
+    print("Model saved successfully!")
+
+    print("Evaluating model...")
+    evaluate_model(model, dataset["test"], feature_extractor)
+
+
+if __name__ == '__main__':
+    main()
