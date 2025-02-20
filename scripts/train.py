@@ -8,51 +8,31 @@ import os
 from datasets import load_dataset
 
 
-def evaluate_model(model, dataset, feature_extractor):
-    model.eval()
-    correct = 0
-    total = 0
-    for example in dataset:
-        inputs = feature_extractor(example["image"], return_tensors="pt")["pixel_values"]
-        with torch.no_grad():
-            outputs = model(inputs)
-            predicted = torch.argmax(outputs.logits, dim=1).item()
-        if predicted == example["label"]:
-            correct += 1
-        total += 1
-    accuracy = 100 * correct / total
-    print(f"Evaluation Accuracy: {accuracy:.2f}%")
-    return accuracy
+# Load dataset from folder
+dataset = load_dataset("imagefolder", data_dir="/content/drive/MyDrive/splits")
 
+# Define preprocessing
+feature_extractor = ViTFeatureExtractor.from_pretrained("google/vit-base-patch16-224-in21k")
+def transform(example):
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=feature_extractor.image_mean, std=feature_extractor.image_std),
+    ])
+    example["pixel_values"] = [transform(img.convert("RGB")) for img in example["image"]]
+    return example
 
-def inference(model, image_path, feature_extractor):
-    from PIL import Image
-    image = Image.open(image_path).convert("RGB")
-    inputs = feature_extractor(image, return_tensors="pt")["pixel_values"]
-    model.eval()
-    with torch.no_grad():
-        outputs = model(inputs)
-        predicted = torch.argmax(outputs.logits, dim=1).item()
-    print(f"Predicted class: {predicted}")
-    return predicted
+dataset = dataset.map(transform, batched=True)
+dataset = dataset.remove_columns(["image"]).rename_column("label", "labels")
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def main():
-    dataset = load_dataset("imagefolder", data_dir="data/processed/splits")
-    feature_extractor = ViTFeatureExtractor.from_pretrained("google/vit-base-patch16-224")
+# Load model
+num_labels = len(dataset["train"].features["labels"].names)
+model = ViTForImageClassification.from_pretrained("google/vit-base-patch16-224-in21k", num_labels=num_labels)
+model.to(device)
 
-    def transform(example):
-        example["pixel_values"] = feature_extractor(example["image"], return_tensors="pt")["pixel_values"][0]
-        return example
-
-    dataset = dataset.with_transform(transform)
-
-    model = ViTForImageClassification.from_pretrained(
-        "google/vit-base-patch16-224",
-        num_labels=len(dataset["train"].features["label"].names)
-    )
-
-    training_args = TrainingArguments(
+training_args = TrainingArguments(
         output_dir="models/outputs",
         evaluation_strategy="epoch",
         save_strategy="epoch",
@@ -62,23 +42,40 @@ def main():
         save_total_limit=2,
         logging_dir="logs",
         logging_steps=10,
-    )
+)
 
-    trainer = Trainer(
-        model=model,
-        args=training_args,
-        train_dataset=dataset["train"],
-        eval_dataset=dataset["test"],
-        tokenizer=feature_extractor,
-    )
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=dataset["train"],
+    eval_dataset=dataset["test"],
+    tokenizer=feature_extractor,
+)
 
-    trainer.train()
-    model.save_pretrained("models/outputs/vit_finetuned")
-    print("Model saved successfully!")
+trainer.train()
+model.save_pretrained("models/outputs/vit_finetuned")
 
-    print("Evaluating model...")
-    evaluate_model(model, dataset["test"], feature_extractor)
+def evaluate():
+    metrics = trainer.evaluate()
+    print("Evaluation metrics:", metrics)
+    return metrics
 
+def predict(image_path):
+    image = Image.open(image_path).convert("RGB")
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=feature_extractor.image_mean, std=feature_extractor.image_std),
+    ])
+    pixel_values = transform(image).unsqueeze(0).to(device)
 
-if __name__ == '__main__':
-    main()
+    model.eval()
+    with torch.no_grad():
+        outputs = model(pixel_values)
+        logits = outputs.logits
+        predicted_class = torch.argmax(logits, dim=-1).item()
+
+    label_names = dataset["train"].features["labels"].names
+    return label_names[predicted_class]
+
+evaluate()
