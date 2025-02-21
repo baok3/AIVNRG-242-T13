@@ -1,1 +1,30 @@
-{}
+{
+    "EfficientNet": {
+        "status": "Fit",
+        "final_train_loss": 0.010751931287813932,
+        "final_val_loss": 0.0010463363723829389,
+        "loss_gap": -0.009705594915430993,
+        "recommended_action": "Model is well-balanced, continue monitoring performance"
+    },
+    "ResNet50": {
+        "status": "Overfitting",
+        "final_train_loss": 0.068629713030532,
+        "final_val_loss": 158.81239318847656,
+        "loss_gap": 158.74376347544603,
+        "recommended_action": "Consider adding regularization or reducing model capacity"
+    },
+    "VGG16": {
+        "status": "Underfitting",
+        "final_train_loss": 0.7074784711003304,
+        "final_val_loss": 0.8567495942115784,
+        "loss_gap": 0.14927112311124802,
+        "recommended_action": "Consider increasing model capacity or training longer"
+    },
+    "MobileNet": {
+        "status": "Overfitting",
+        "final_train_loss": 0.011125686801278789,
+        "final_val_loss": 0.2240956574678421,
+        "loss_gap": 0.2129699706665633,
+        "recommended_action": "Consider adding regularization or reducing model capacity"
+    }
+}
