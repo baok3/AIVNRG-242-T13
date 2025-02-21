@@ -1,9 +1,8 @@
-from utils import *
 import torch
 import torch.nn as nn
 from torchvision.models import mobilenet_v2, MobileNet_V2_Weights
 
-class CustomMobileNet(nn.Module):
+class MobileNet(nn.Module):
     def __init__(self, num_classes=2):
         """
         Initialize a MobileNetV2 model customized for binary classification.
@@ -11,7 +10,7 @@ class CustomMobileNet(nn.Module):
         Args:
             num_classes (int): Number of output classes (default: 2 for binary classification)
         """
-        super(CustomMobileNet, self).__init__()
+        super(MobileNet, self).__init__()
         # Load pre-trained MobileNetV2
         self.mobilenet = mobilenet_v2(weights=MobileNet_V2_Weights.DEFAULT)
         

@@ -1,4 +1,3 @@
-from utils import *
 import torch
 import torch.nn as nn
 from torchvision.models import resnet50, ResNet50_Weights

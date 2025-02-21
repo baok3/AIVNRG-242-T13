@@ -1,4 +1,3 @@
-from utils import *
 import torch
 import torch.nn as nn
 from torchvision.models import vgg16, VGG16_Weights
