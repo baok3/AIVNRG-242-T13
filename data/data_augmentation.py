@@ -22,7 +22,7 @@ split_ratio = 0.8  # 80% train, 20% test
 
 # Duyệt qua các class
 for class_name in classes:
-    class_dir = os.path.join('../data/processed/rare_disease', class_name)
+    class_dir = os.path.join('../data/resolution', class_name)
     if not os.path.isdir(class_dir):
         continue
 
@@ -52,6 +52,7 @@ for class_name in classes:
         image_path = os.path.join(class_dir, image_name)
         image = Image.open(image_path).convert('RGB')
         save_path = os.path.join(test_class_dir, image_name)
+        print(save_path)
         image.save(save_path)  # Lưu ảnh gốc vào tập test
 
 print("Augmentation completed and images saved in 'splits' folder with train-test split.")
